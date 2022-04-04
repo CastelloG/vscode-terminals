@@ -117,6 +117,10 @@
       {
         "command": "terminals.runTerminal",
         "title": "Terminals: Run Single"
+      },
+      {
+        "command": "terminals.runTerminalGroup",
+        "title": "Terminals: Run Group"
       }
     ],
     "keybindings": [

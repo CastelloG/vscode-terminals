@@ -59,6 +59,43 @@ async function runTerminalByName ( name ) {
 
 }
 
+async function runTerminalGroup ( group ) {
+
+  const config = await Config.get ()
+
+  if(!group) {
+    const knownGroupNames = config.terminals.reduce((groupNames, terminal) => terminal?.group ? [...groupNames, terminal?.group] : groupNames , [])
+    let group = ""
+    vscode.window.showQuickPick(knownGroupNames, {
+      title: "Select a group",
+      canPickMany: false,
+      onDidSelectItem: (item) => item=group
+    })
+
+    if(!group) return vscode.window.showErrorMessage ( `No terminal group selected, try again` );
+  }
+
+  const terminals = config.terminals.find ( terminal => terminal.group === group );
+
+  if ( !terminals.length ) return vscode.window.showErrorMessage ( `Terminal group '${group}' not found, edit the configuration` );
+
+  let parentTerminal = null,
+      createdTerminals = [];
+  for (let index = 0; index < terminals; index++) {
+    const terminal = terminals[index];
+    parentTerminal = await run ( {...terminal, parentTerminal}, config );
+    createdTerminals = [...createdTerminals, parentTerminal]
+  }
+
+  const terms = createdTerminals.filter ( _.identity ),
+        term = terms.find ( ({ __terminal }) => __terminal.open || __terminal.focus  ) as vscode.Terminal;
+
+  if ( !term ) return;
+
+  term.show ( !term['__terminal'].focus );
+
+}
+
 async function initConfig () {
 
   const config = await Config.get ();
@@ -101,6 +138,14 @@ async function initConfig () {
       open: true,
       onlySingle: true,
       command: 'echo "I will not run with the others"'
+    }, {
+      name: 'Group terminal',
+      group: 'my_group_name',
+      command: 'echo "I will open alongside split terminals with the same group name"'
+    }, {
+      name: 'Another group terminal',
+      group: 'my_group_name',
+      command: 'echo "I will open alongside split terminals with the same group name"'
     }]
   };
   const content = JSON.stringify ( defaultConfig, undefined, 2 );
@@ -136,4 +181,4 @@ async function kill () {
 
 /* EXPORT */
 
-export {runTerminals, runTerminal, runTerminalByName, initConfig, editConfig, kill};
+export {runTerminals, runTerminal, runTerminalByName, runTerminalGroup, initConfig, editConfig, kill};

@@ -60,7 +60,7 @@ async function run ( terminal, config, rootPath?, substitutions? ) {
 
   rootPath = rootPath || Utils.folder.getActiveRootPath ();
 
-  const { name, color, icon, target, cwd: terminalCwd, command, commands, execute, persistent, recycle, substitution, shellPath, env: terminalEnv, envInherit } = terminal,
+  const { name, color, icon, target, cwd: terminalCwd, command, commands, execute, persistent, recycle, substitution, shellPath, env: terminalEnv, envInherit, parentTerminal } = terminal,
         configPath = _.get ( config, 'configPath' ) as string,
         configEnv = _.get ( config, 'env' );
 
@@ -108,8 +108,15 @@ async function run ( terminal, config, rootPath?, substitutions? ) {
         cacheTerm = recycle !== false && cache[cacheTarget],
         colorPath = color ? new vscode.ThemeColor ( color ) : null,
         iconPath = icon ? new vscode.ThemeIcon ( icon ) : null,
-        isCached = !!cacheTerm,
-        term = cacheTerm || vscode.window.createTerminal ({ cwd, env, name: cacheTarget, color: colorPath, iconPath, shellPath, shellArgs });
+        isCached = !!cacheTerm;
+  
+  let terminalBase = { cwd, env, name: cacheTarget, color: colorPath, iconPath, shellPath, shellArgs }
+
+  if(parentTerminal) {
+    terminalBase = {...terminalBase, location: {parentTerminal}}
+  }
+
+  const term = cacheTerm ?? vscode.window.createTerminal (terminalBase);
 
   cache[cacheTarget] = term;
 

@@ -32,7 +32,7 @@ const Utils = {
 
     /* HARD CODED */
 
-    ['terminals.runTerminalByName'].forEach ( command => {
+    ['terminals.runTerminalByName', 'terminals.runTerminalGroup'].forEach ( command => {
 
       const commandName = _.last ( command.split ( '.' ) ) as string,
             handler = Commands[commandName],
